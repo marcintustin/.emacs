@@ -78,7 +78,7 @@
 
 (global-set-key "\C-w" 'clipboard-kill-region)
 (global-set-key "\M-w" 'clipboard-kill-ring-save)
-(global-set-key "\C-y" 'clipboard-yank)
+(global-set-key "\C-y" 'yank)
 
 
 (global-set-key [(f11)] 'hippie-expand)
@@ -219,7 +219,6 @@
 (use-package json
   :ensure t)
 
-;(require 'json-mode)
 (use-package tabbar
   :ensure t
   :config
@@ -256,10 +255,23 @@
   :ensure t
   :config
   (setq org-log-done 'time)
-  (setq org-agenda-files (list "~/Documents/TODO.org"))
-  )
+  (setq org-agenda-files (list "~/Documents/TODO.org")))
 
-(use-package yaml-mode :ensure t)
+(use-package yaml-mode
+  :ensure t
+  :hook (yaml-mode . turn-off-auto-fill))
+
+(use-package ansible :ensure t)
+
+(use-package mmm-jinja2 :ensure t)
+
+(use-package git-commit :ensure t)
+
+(use-package magit :ensure t)
+
+(use-package docker-compose-mode :ensure t)
+
+(use-package dockerfile-mode :ensure t)
 
 ;; server setup
 (setq server-socket-dir "~/.emacs.d/server-sockets")
