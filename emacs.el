@@ -203,6 +203,10 @@
 
 (setq js-indent-level 2)
 
+(require 'make-mode)
+(add-hook 'makefile-gmake-mode-hook #'auto-complete-mode)
+
+
 (require 'package)
 ;; needed because paths with spaces break jedi
 (setq package-user-dir "~/.emacs.d/packages")
@@ -300,7 +304,7 @@
   :config
   (setq jedi:get-in-function-call-delay 500))
 
-;;(use-package company-jedi :ensure t)
+(use-package company-jedi :ensure t)
 ;; server setup
 (setq server-socket-dir "~/.emacs.d/server-sockets")
 (server-start)
