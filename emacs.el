@@ -204,11 +204,13 @@
 (setq js-indent-level 2)
 
 (require 'package)
+;; needed because paths with spaces break jedi
+(setq package-user-dir "~/.emacs.d/packages")
 (package-initialize)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
-
+(package-install 'use-package)
 (require 'use-package)
 (use-package editorconfig
   :ensure t
@@ -226,6 +228,7 @@
 
 (use-package auto-complete
   :ensure t
+  :disabled
   :config
   (require 'auto-complete-config)
   (global-auto-complete-mode 't))
@@ -261,7 +264,9 @@
   :ensure t
   :hook (yaml-mode . turn-off-auto-fill))
 
-(use-package ansible :ensure t)
+(use-package ansible
+  :ensure t
+  :hook (yaml-mode . ansible))
 
 (use-package mmm-jinja2 :ensure t)
 
@@ -273,6 +278,29 @@
 
 (use-package dockerfile-mode :ensure t)
 
+(use-package company-ansible
+  :ensure t
+  :after (company)
+  :hook (yaml-mode . (lambda () (company-mode)))
+  :config
+  (add-to-list 'company-backends 'company-ansible)
+  (setq company-idle-delay 0))
+
+(use-package jedi-core
+  :ensure t
+  :config
+  (setq python-environment-directory "~/.emacs.d/.python-environments")
+  (setq jedi:complete-on-dot t)
+  (jedi:install-server))
+
+(use-package jedi
+  :ensure t
+  :after (jedi-core)
+  :hook (python-mode . jedi:setup)
+  :config
+  (setq jedi:get-in-function-call-delay 500))
+
+;;(use-package company-jedi :ensure t)
 ;; server setup
 (setq server-socket-dir "~/.emacs.d/server-sockets")
 (server-start)
