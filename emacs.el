@@ -289,6 +289,8 @@
 
 (use-package dockerfile-mode :ensure t)
 
+(use-package tickscript-mode :ensure t)
+
 (use-package company-ansible
   :ensure t
   :after (company)
