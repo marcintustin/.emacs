@@ -318,3 +318,5 @@
 (setq server-socket-dir "~/.emacs.d/server-sockets")
 (server-start)
 
+(setq flycheck-python-pycompile-executable "python3")
+
