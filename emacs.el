@@ -1,4 +1,14 @@
 ;; .emacs
+;; ____________________________________________________________________________
+;; Aquamacs custom-file warning:
+;;;; Note below warning is the default text. We set customizations in this file to prevent separate customization being loaded
+;; Warning: After loading this .emacs file, Aquamacs will also load
+;; customizations from `custom-file' (customizations.el). Any settings there
+;; will override those made here.
+;; Consider moving your startup settings to the Preferences.el file, which
+;; is loaded after `custom-file':
+;; ~/Library/Preferences/Aquamacs Emacs/Preferences
+;; _____________________________________________________________________________
 
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
@@ -191,17 +201,29 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(aquamacs-additional-fontsets nil t)
+ '(aquamacs-customization-version-id 312 t)
+ '(aquamacs-tool-bar-user-customization nil t)
  '(column-number-mode t)
+ '(custom-file nil)
+ '(ns-right-alternate-modifier (quote super))
+ '(ns-tool-bar-display-mode (quote both) t)
+ '(ns-tool-bar-size-mode (quote regular) t)
+ '(one-buffer-one-frame-mode nil nil (aquamacs-frame-setup))
  '(package-selected-packages
    (quote
-    (use-package tabbar ponylang-mode mmm-jinja2 magit jedi flycheck-pony editorconfig dockerfile-mode docker-compose-mode company-jedi company-ansible ansible)))
- '(show-paren-mode t))
+    (groovy-mode gradle-mode scala-mode go-mode company-jedi jedi jedi-core company-ansible tickscript-mode dockerfile-mode docker-compose-mode magit mmm-jinja2 ansible yaml-mode flycheck-pony flycheck ponylang-mode tabbar editorconfig use-package)))
+; '(pop-up-frames (quote nil))
+; '(pop-up-windows (quote nil))
+ '(show-paren-mode t)
+ '(visual-line-mode nil t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "gray85" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "monotype" :family "Andale Mono")))))
+ '(default ((t (:inherit nil :stipple nil :background "gray85" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "monotype" :family "Andale Mono"))))
+ '(text-mode-default ((t (:inherit (quote default))))))
 
 
 (setq js-indent-level 2)
@@ -214,13 +236,29 @@
 (add-hook 'makefile-gmake-mode-hook #'auto-complete-mode)
 
 
+(require 'tramp)
+;; TRAMP gcloud ssh
+(add-to-list 'tramp-methods
+  '("gssh"
+    (tramp-login-program        "gcloud compute ssh")
+    (tramp-login-args           (("%h")))
+    (tramp-async-args           (("-q")))
+    (tramp-remote-shell         "/bin/sh")
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
+                                 ("-o" "UserKnownHostsFile=/dev/null")
+                                 ("-o" "StrictHostKeyChecking=no")
+                                 ("--internal-ip")))
+    (tramp-default-port         22)))
+
 (require 'package)
 ;; needed because paths with spaces break jedi
 (setq package-user-dir "~/.emacs.d/packages")
 (package-initialize)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")
+                         ;;("marmalade" . "http://marmalade-repo.org/packages/")
                          ("melpa" . "http://melpa.milkbox.net/packages/")))
+
 (package-install 'use-package)
 (require 'use-package)
 (use-package editorconfig
@@ -247,6 +285,7 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (setq ns-right-option-modifier 'super)
+
 
 (use-package ponylang-mode
   :ensure t
@@ -281,7 +320,7 @@
 
 (use-package mmm-jinja2 :ensure t)
 
-(use-package git-commit :ensure t)
+; (use-package git-commit :ensure t)
 
 (use-package magit :ensure t)
 
@@ -320,3 +359,18 @@
 
 (setq flycheck-python-pycompile-executable "python3")
 
+(use-package go-mode
+  :ensure t)
+
+(use-package scala-mode
+  :ensure t
+  :interpreter
+  ("amm" . scala-mode))
+
+
+(use-package gradle-mode
+  :ensure t)
+
+
+(use-package groovy-mode
+  :ensure t)
