@@ -1,3 +1,4 @@
+
 ;; .emacs
 ;; ____________________________________________________________________________
 ;; Aquamacs custom-file warning:
@@ -80,6 +81,13 @@
 ;(global-set-key [(control mouse-4)] 'down-a-lot)
 ;(global-set-key [C-mouse-5] 'up-a-lot)
 
+(global-set-key [mouse-3]
+  `(menu-item ,(purecopy "Menu Bar") ignore
+    :filter (lambda (_)
+              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+                  (mouse-menu-bar-map)
+                (mouse-menu-major-mode-map)))))
+
 (global-set-key [(control <)] 'beginning-of-buffer)
 (global-set-key [(insert)] 'clipboard-kill-ring-save)
 (global-set-key [(meta w)] 'clipboard-kill-ring-save)
@@ -105,6 +113,8 @@
 (global-set-key [(control \\)] 'set-mark-command)
 (global-set-key [(button5)] 'scroll-up)
 (global-set-key [(button4)] 'scroll-down)
+(global-set-key [(super up)] 'previous-logical-line)
+
 
 (global-set-key [(control delete)] 'kill-this-buffer)
 (global-set-key [(meta delete)] 'delete-window)
@@ -133,12 +143,23 @@
    (replace-match "\n" nil t))
 )
 
+(defun sort-comma-list ()
+  "Sort comma separated items in region"
+  (interactive)
+  (sort-regexp-fields nil "[^,]+" "\\&" (region-beginning) (region-end)))
 
 (defun squeeze-blank-lines ()(interactive) (replace-regexp "^[ 	]*
 " ""))
 
 (defun squeeze-duplicates ()(interactive) (replace-regexp "\(^.*$\)
 \1" "\1"))
+
+(defun json-stuff () (interactive)
+       (progn
+         (while (re-search-forward "\n" (region-end) t)
+           (replace-match "" nil nil))
+         (while (re-search-forward "\"" (region-end) t)
+           (replace-match "\\\\\"" nil nil))))
 
 
 ; My .emacs file.  Hacked together from a lot of others.
@@ -166,7 +187,7 @@
 ;(resize-minibuffer-mode)
 
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/"))
+;(add-to-list 'load-path (expand-file-name "~/.emacs.d/"))
 
 
 
@@ -192,8 +213,9 @@
 ;;(add-to-list 'auto-mode-alist '("\\.gobxml$" . nxml-mode))
 (add-to-list 'auto-mode-alist '("\\.ini$" . ini-mode))
 (add-to-list 'auto-mode-alist '("\\.fix$" . fix-mode))
+(emacs-version)
 
-
+(if (string-match "Aquamacs.*" (emacs-version)) '(one-buffer-one-frame-mode nil nil (aquamacs-frame-setup)))
 ; this is the cause of the c-emacs-features error
 ;;(require 'css-mode)
 (custom-set-variables
@@ -206,15 +228,12 @@
  '(aquamacs-tool-bar-user-customization nil t)
  '(column-number-mode t)
  '(custom-file nil)
- '(ns-right-alternate-modifier (quote super))
- '(ns-tool-bar-display-mode (quote both) t)
- '(ns-tool-bar-size-mode (quote regular) t)
- '(one-buffer-one-frame-mode nil nil (aquamacs-frame-setup))
+ '(nil nil t)
+ '(ns-right-alternate-modifier 'super)
+ '(ns-tool-bar-display-mode 'both t)
+ '(ns-tool-bar-size-mode 'regular t)
  '(package-selected-packages
-   (quote
-    (groovy-mode gradle-mode scala-mode go-mode company-jedi jedi jedi-core company-ansible tickscript-mode dockerfile-mode docker-compose-mode magit mmm-jinja2 ansible yaml-mode flycheck-pony flycheck ponylang-mode tabbar editorconfig use-package)))
-; '(pop-up-frames (quote nil))
-; '(pop-up-windows (quote nil))
+   '(elpy sed-mode groovy-mode gradle-mode scala-mode go-mode company-jedi jedi jedi-core company-ansible tickscript-mode dockerfile-mode docker-compose-mode magit mmm-jinja2 ansible yaml-mode flycheck-pony flycheck ponylang-mode tabbar editorconfig use-package))
  '(show-paren-mode t)
  '(visual-line-mode nil t))
 (custom-set-faces
@@ -223,7 +242,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(default ((t (:inherit nil :stipple nil :background "gray85" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "monotype" :family "Andale Mono"))))
- '(text-mode-default ((t (:inherit (quote default))))))
+ '(text-mode-default ((t (:inherit 'default)))))
 
 
 (setq js-indent-level 2)
@@ -236,28 +255,17 @@
 (add-hook 'makefile-gmake-mode-hook #'auto-complete-mode)
 
 
-(require 'tramp)
-;; TRAMP gcloud ssh
-(add-to-list 'tramp-methods
-  '("gssh"
-    (tramp-login-program        "gcloud compute ssh")
-    (tramp-login-args           (("%h")))
-    (tramp-async-args           (("-q")))
-    (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-                                 ("-o" "UserKnownHostsFile=/dev/null")
-                                 ("-o" "StrictHostKeyChecking=no")
-                                 ("--internal-ip")))
-    (tramp-default-port         22)))
 
 (require 'package)
 ;; needed because paths with spaces break jedi
 (setq package-user-dir "~/.emacs.d/packages")
-(package-initialize)
+(progn
+ (defvar warning-minimum-level :emergency)
+ (package-initialize))
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ;;("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+                         ("melpa" . "https://melpa.org/packages/")))
+
 
 (package-install 'use-package)
 (require 'use-package)
@@ -320,7 +328,10 @@
 
 (use-package mmm-jinja2 :ensure t)
 
-; (use-package git-commit :ensure t)
+;; TODO: Configure this so that when the commit message window is closed using the provided commands,
+;; the magit-diff buffer that was opened is also deleted. This *should* ensure that we get a fresh diff
+;; every time
+(use-package git-commit :ensure t)
 
 (use-package magit :ensure t)
 
@@ -338,26 +349,41 @@
   (add-to-list 'company-backends 'company-ansible)
   (setq company-idle-delay 0))
 
-(use-package jedi-core
+;(setq python-check-command "/usr/local/bin/flake8")
+
+(use-package elpy
   :ensure t
-  :config
-  (setq python-environment-directory "~/.emacs.d/.python-environments")
-  (setq jedi:complete-on-dot t)
-  (jedi:install-server))
+  :defer t
+  :custom
+  (python-check-command "/usr/local/bin/flake8")
+  (elpy-syntax-check-command  "/usr/local/bin/flake8")
+  :init
+  (setq python-shell-interpreter "/usr/local/bin/python3")
+  (setenv "VIRTUALENVWRAPPER_PYTHON" python-shell-interpreter)
+  (setenv "WORKON_HOME" (concat (getenv "HOME") "/dev/venvs/"))
+  (advice-add 'python-mode :before 'elpy-enable)
+  )
 
-(use-package jedi
-  :ensure t
-  :after (jedi-core)
-  :hook (python-mode . jedi:setup)
-  :config
-  (setq jedi:get-in-function-call-delay 500))
+;; (use-package jedi-core
+;;   :ensure t
+;;   :config
+;;   (setq python-environment-directory "~/.emacs.d/.python-environments")
+;;   (setq jedi:complete-on-dot t)
+;;   (jedi:install-server))
 
-(use-package company-jedi :ensure t)
-;; server setup
-(setq server-socket-dir "~/.emacs.d/server-sockets")
-(server-start)
+;; (use-package jedi
+;;   :ensure t
+;;   :after (jedi-core)
+;;   :hook (python-mode . jedi:setup)
+;;   :config
+;;   (setq jedi:get-in-function-call-delay 500))
 
-(setq flycheck-python-pycompile-executable "python3")
+;; (use-package company-jedi :ensure t)
+;; ;; server setup
+;; (setq server-socket-dir "~/.emacs.d/server-sockets")
+;; (server-start)
+
+;; (setq flycheck-python-pycompile-executable "python3")
 
 (use-package go-mode
   :ensure t)
@@ -374,3 +400,29 @@
 
 (use-package groovy-mode
   :ensure t)
+
+(use-package sed-mode
+  :ensure t)
+
+;; Keep the path settings of the remote account.
+(use-package tramp
+  :config
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (setq vc-handled-backends '(Git))
+  (setq tramp-verbose 1)
+  (customize-set-variable
+      'tramp-backup-directory-alist (cons tramp-file-name-regexp "~/.emacs.d/backups/"))
+  ;; TRAMP gcloud ssh
+  (add-to-list 'tramp-methods
+  '("gssh"
+    (tramp-login-program        "gcloud compute ssh")
+    (tramp-login-args           (("%h")))
+    (tramp-async-args           (("-q")))
+    (tramp-remote-shell         "/bin/sh")
+    (tramp-remote-shell-args    ("-c"))
+    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
+                                 ("-o" "UserKnownHostsFile=/dev/null")
+                                 ("-o" "StrictHostKeyChecking=no")
+                                 ("--internal-ip")))
+    (tramp-default-port         22)))
+)
