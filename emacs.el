@@ -123,6 +123,11 @@
 (global-set-key [(control x) \?] 'register-to-point)
 (global-set-key [(control l)] 'bury-buffer)
 
+(global-set-key [(control s)] 'isearch-forward)
+(global-set-key [(control shift S)] 'isearch-backward)
+(define-key isearch-mode-map [(control shift S)] 'isearch-repeat-backward)
+(define-key isearch-mode-map [(control s)] 'isearch-repeat-forward)
+
 
 (setq delete-key-deletes-forward 'true)
 
@@ -164,11 +169,16 @@
 
 ; My .emacs file.  Hacked together from a lot of others.
 
+;; Save our session across sessions
+(setq desktop-files-not-to-save nil)
+(desktop-save-mode 1)
+
+
 (setq-default indent-tabs-mode nil)
 (setq frame-title-format "Emacs - %f")
 (setq icon-title-format "Emacs - %f")
 (setq query-replace-highlight t)    ;highlight during query
-(setq search-highlight t)        ;incremental search highlights
+(setq search-highlight t)        ;incrementalsearch highlights
 
 ;; I like to know what time it is. These lines show the clock in
 ;; the status bar. Comment out first line if you prefer to show
@@ -180,6 +190,7 @@
 
 ;; Get rid of that anoying text at the start of the scratch buffer
 (setq initial-scratch-message nil)
+(setq inhibit-startup-message t)
 
 ;;; Resize the minibuffer so its entire contents are visible.
 (setq resize-minibuffer-mode t)
@@ -380,8 +391,8 @@
 
 ;; (use-package company-jedi :ensure t)
 ;; ;; server setup
-;; (setq server-socket-dir "~/.emacs.d/server-sockets")
-;; (server-start)
+(setq server-socket-dir "~/.emacs.d/server-sockets")
+(server-start)
 
 ;; (setq flycheck-python-pycompile-executable "python3")
 
@@ -406,23 +417,19 @@
 
 ;; Keep the path settings of the remote account.
 (use-package tramp
+  :custom
+  (tramp-backup-directory-alist nil)
+  (tramp-auto-save-directory "~/.emacs.d/backups/")
   :config
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  ;(add-to-list 'backup-directory-alist
+  ;           (cons tramp-file-name-regexp "~/.emacs.d/backups/"))
   (setq vc-handled-backends '(Git))
   (setq tramp-verbose 1)
-  (customize-set-variable
-      'tramp-backup-directory-alist (cons tramp-file-name-regexp "~/.emacs.d/backups/"))
-  ;; TRAMP gcloud ssh
-  (add-to-list 'tramp-methods
-  '("gssh"
-    (tramp-login-program        "gcloud compute ssh")
-    (tramp-login-args           (("%h")))
-    (tramp-async-args           (("-q")))
-    (tramp-remote-shell         "/bin/sh")
-    (tramp-remote-shell-args    ("-c"))
-    (tramp-gw-args              (("-o" "GlobalKnownHostsFile=/dev/null")
-                                 ("-o" "UserKnownHostsFile=/dev/null")
-                                 ("-o" "StrictHostKeyChecking=no")
-                                 ("--internal-ip")))
-    (tramp-default-port         22)))
-)
+  )
+
+
+(if (member default-directory '("" "/"))
+ (setq default-directory (getenv "HOME")))
+
+;;; emacs.el ends here
