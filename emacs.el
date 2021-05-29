@@ -227,8 +227,8 @@
 (require 'package)
 (package-initialize)
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
-                         ("marmalade" . "http://marmalade-repo.org/packages/")
-                         ("melpa" . "http://melpa.milkbox.net/packages/")))
+                         ("melpa-stable" . "https://stable.melpa.org/packages/")
+                         ("melpa" . "https://melpa.org/packages/")))
 
 (require 'use-package)
 (use-package editorconfig
@@ -318,6 +318,21 @@
 
 (use-package company-web :ensure t)
 (use-package company-jedi :ensure t)
+
+(use-package lsp-mode
+  :ensure t
+  :config
+  (setenv "PATH" (concat (getenv "PATH") ":/Users/marcin/go/bin/"))
+  (setq exec-path (append exec-path '("/Users/marcin/go/bin/")))
+)
+(use-package go-mode
+  :ensure t
+  :hook (go-mode-hook . lsp-deferred)
+  :config
+  (setenv "PATH" (concat (getenv "PATH") ":/Users/marcin/go/bin/"))
+  (setq exec-path (append exec-path '("/Users/marcin/go/bin/"))))
+
+
 
 (require 'web-mode)
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
