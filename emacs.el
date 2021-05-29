@@ -1,6 +1,7 @@
 ;; .emacs
 ;; ____________________________________________________________________________
 ;; Aquamacs custom-file warning:
+;;;; Note below warning is the default text. We set customizations in this file to prevent separate customization being loaded
 ;; Warning: After loading this .emacs file, Aquamacs will also load
 ;; customizations from `custom-file' (customizations.el). Any settings there
 ;; will override those made here.
@@ -79,6 +80,13 @@
 ;(global-set-key [(control mouse-4)] 'down-a-lot)
 ;(global-set-key [C-mouse-5] 'up-a-lot)
 
+(global-set-key [mouse-3]
+  `(menu-item ,(purecopy "Menu Bar") ignore
+    :filter (lambda (_)
+              (if (zerop (or (frame-parameter nil 'menu-bar-lines) 0))
+                  (mouse-menu-bar-map)
+                (mouse-menu-major-mode-map)))))
+
 (global-set-key [(control <)] 'beginning-of-buffer)
 (global-set-key [(insert)] 'clipboard-kill-ring-save)
 (global-set-key [(meta w)] 'clipboard-kill-ring-save)
@@ -104,6 +112,8 @@
 (global-set-key [(control \\)] 'set-mark-command)
 (global-set-key [(button5)] 'scroll-up)
 (global-set-key [(button4)] 'scroll-down)
+(global-set-key [(super up)] 'previous-logical-line)
+
 
 (global-set-key [(control delete)] 'kill-this-buffer)
 (global-set-key [(meta delete)] 'delete-window)
@@ -111,6 +121,11 @@
 
 (global-set-key [(control x) \?] 'register-to-point)
 (global-set-key [(control l)] 'bury-buffer)
+
+(global-set-key [(control s)] 'isearch-forward)
+(global-set-key [(control shift S)] 'isearch-backward)
+(define-key isearch-mode-map [(control shift S)] 'isearch-repeat-backward)
+(define-key isearch-mode-map [(control s)] 'isearch-repeat-forward)
 
 
 (setq delete-key-deletes-forward 'true)
@@ -132,6 +147,10 @@
    (replace-match "\n" nil t))
 )
 
+(defun sort-comma-list ()
+  "Sort comma separated items in region"
+  (interactive)
+  (sort-regexp-fields nil "[^,]+" "\\&" (region-beginning) (region-end)))
 
 (defun squeeze-blank-lines ()(interactive) (replace-regexp "^[ 	]*
 " ""))
@@ -139,14 +158,26 @@
 (defun squeeze-duplicates ()(interactive) (replace-regexp "\(^.*$\)
 \1" "\1"))
 
+(defun json-stuff () (interactive)
+       (progn
+         (while (re-search-forward "\n" (region-end) t)
+           (replace-match "" nil nil))
+         (while (re-search-forward "\"" (region-end) t)
+           (replace-match "\\\\\"" nil nil))))
+
 
 ; My .emacs file.  Hacked together from a lot of others.
+
+;; Save our session across sessions
+(setq desktop-files-not-to-save nil)
+(desktop-save-mode 1)
+
 
 (setq-default indent-tabs-mode nil)
 (setq frame-title-format "Emacs - %f")
 (setq icon-title-format "Emacs - %f")
 (setq query-replace-highlight t)    ;highlight during query
-(setq search-highlight t)        ;incremental search highlights
+(setq search-highlight t)        ;incrementalsearch highlights
 
 ;; I like to know what time it is. These lines show the clock in
 ;; the status bar. Comment out first line if you prefer to show
@@ -158,6 +189,7 @@
 
 ;; Get rid of that anoying text at the start of the scratch buffer
 (setq initial-scratch-message nil)
+(setq inhibit-startup-message t)
 
 ;;; Resize the minibuffer so its entire contents are visible.
 (setq resize-minibuffer-mode t)
@@ -165,7 +197,7 @@
 ;(resize-minibuffer-mode)
 
 
-(add-to-list 'load-path (expand-file-name "~/.emacs.d/"))
+;(add-to-list 'load-path (expand-file-name "~/.emacs.d/"))
 
 
 
@@ -192,8 +224,9 @@
 ;;(add-to-list 'auto-mode-alist '("\\.gobxml$" . nxml-mode))
 (add-to-list 'auto-mode-alist '("\\.ini$" . ini-mode))
 (add-to-list 'auto-mode-alist '("\\.fix$" . fix-mode))
+(emacs-version)
 
-
+(if (string-match "Aquamacs.*" (emacs-version)) '(one-buffer-one-frame-mode nil nil (aquamacs-frame-setup)))
 ; this is the cause of the c-emacs-features error
 ;;(require 'css-mode)
 (custom-set-variables
@@ -201,17 +234,26 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(aquamacs-additional-fontsets nil t)
+ '(aquamacs-customization-version-id 312 t)
+ '(aquamacs-tool-bar-user-customization nil t)
  '(column-number-mode t)
+ '(custom-file nil)
+ '(nil nil t)
+ '(ns-right-alternate-modifier 'super)
+ '(ns-tool-bar-display-mode 'both t)
+ '(ns-tool-bar-size-mode 'regular t)
  '(package-selected-packages
-   (quote
-    (use-package tabbar ponylang-mode mmm-jinja2 magit jedi flycheck-pony editorconfig dockerfile-mode docker-compose-mode company-jedi company-ansible ansible)))
- '(show-paren-mode t))
+   '(lsp-mode julia-repl elpy sed-mode groovy-mode gradle-mode scala-mode go-mode company-jedi jedi jedi-core company-ansible tickscript-mode dockerfile-mode docker-compose-mode magit mmm-jinja2 ansible yaml-mode flycheck-pony flycheck ponylang-mode tabbar editorconfig use-package))
+ '(show-paren-mode t)
+ '(visual-line-mode nil t))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :stipple nil :background "gray85" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "monotype" :family "Andale Mono")))))
+ '(default ((t (:inherit nil :stipple nil :background "gray85" :foreground "black" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 110 :width normal :foundry "monotype" :family "Andale Mono"))))
+ '(text-mode-default ((t (:inherit 'default)))))
 
 
 (setq js-indent-level 2)
@@ -224,11 +266,28 @@
 (add-hook 'makefile-gmake-mode-hook #'auto-complete-mode)
 
 
+
 (require 'package)
-(package-initialize)
+;; needed because paths with spaces break jedi
+(setq package-user-dir "~/.emacs.d/packages")
+
 (setq package-archives '(("gnu" . "http://elpa.gnu.org/packages/")
                          ("melpa-stable" . "https://stable.melpa.org/packages/")
                          ("melpa" . "https://melpa.org/packages/")))
+
+
+(progn
+ (defvar warning-minimum-level :emergency)
+ (package-initialize))
+
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents))
+
+(setq my-package-list '(use-package))
+(dolist (package my-package-list)
+  (unless (package-installed-p package)
+    (package-install package)))
+
 
 (require 'use-package)
 (use-package editorconfig
@@ -254,6 +313,7 @@
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 (setq ns-right-option-modifier 'super)
+
 
 (use-package ponylang-mode
   :ensure t
@@ -286,6 +346,9 @@
 
 (use-package mmm-jinja2 :ensure t)
 
+;; TODO: Configure this so that when the commit message window is closed using the provided commands,
+;; the magit-diff buffer that was opened is also deleted. This *should* ensure that we get a fresh diff
+;; every time
 (use-package git-commit :ensure t)
 
 (use-package magit :ensure t)
@@ -302,9 +365,13 @@
   (setq exec-path (append exec-path '("/Applications/Julia-1.3.app/Contents/Resources/julia/bin")))
   (add-hook 'julia-mode-hook 'julia-repl-mode))
 
-(use-package julia-repl :ensure t
-  :config
-  (add-hook 'julia-mode-hook 'julia-repl-mode))
+(use-package julia-repl :ensure t)
+(use-package tickscript-mode :ensure t)
+
+(use-package company-ansible
+  :ensure t
+  :after (company)
+  :hook (yaml-mode . (lambda () (company-mode))))
 
 (use-package web-mode
   :ensure t
@@ -339,7 +406,75 @@
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 
 
+;(setq python-check-command "/usr/local/bin/flake8")
+
+(use-package elpy
+  :ensure t
+  :defer t
+  :custom
+  (python-check-command "/usr/local/bin/flake8")
+  (elpy-syntax-check-command  "/usr/local/bin/flake8")
+  :init
+  (setq python-shell-interpreter "/usr/local/bin/python3")
+  (setenv "VIRTUALENVWRAPPER_PYTHON" python-shell-interpreter)
+  (setenv "WORKON_HOME" (concat (getenv "HOME") "/dev/venvs/"))
+  (advice-add 'python-mode :before 'elpy-enable)
+  )
+
+;; (use-package jedi-core
+;;   :ensure t
+;;   :config
+;;   (setq python-environment-directory "~/.emacs.d/.python-environments")
+;;   (setq jedi:complete-on-dot t)
+;;   (jedi:install-server))
+
+;; (use-package jedi
+;;   :ensure t
+;;   :after (jedi-core)
+;;   :hook (python-mode . jedi:setup)
+;;   :config
+;;   (setq jedi:get-in-function-call-delay 500))
+
+;; (use-package company-jedi :ensure t)
+
+;; (setq flycheck-python-pycompile-executable "python3")
+
+
+(use-package scala-mode
+  :ensure t
+  :interpreter
+  ("amm" . scala-mode))
+
+
+(use-package gradle-mode
+  :ensure t)
+
+
+(use-package groovy-mode
+  :ensure t)
+
+(use-package sed-mode
+  :ensure t)
+
+;; Keep the path settings of the remote account.
+(use-package tramp
+  :custom
+  (tramp-backup-directory-alist nil)
+  (tramp-auto-save-directory "~/.emacs.d/backups/")
+  :config
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  ;(add-to-list 'backup-directory-alist
+  ;           (cons tramp-file-name-regexp "~/.emacs.d/backups/"))
+  (setq vc-handled-backends '(Git))
+  (setq tramp-verbose 1)
+  )
+
+
+(if (member default-directory '("" "/"))
+ (setq default-directory (getenv "HOME")))
+
 ;; server setup
 (setq server-socket-dir "~/.emacs.d/server-sockets")
 (server-start)
 
+;;; emacs.el ends here
