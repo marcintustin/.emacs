@@ -1,4 +1,13 @@
 ;; .emacs
+;; ____________________________________________________________________________
+;; Aquamacs custom-file warning:
+;; Warning: After loading this .emacs file, Aquamacs will also load
+;; customizations from `custom-file' (customizations.el). Any settings there
+;; will override those made here.
+;; Consider moving your startup settings to the Preferences.el file, which
+;; is loaded after `custom-file':
+;; ~/Library/Preferences/Aquamacs Emacs/Preferences
+;; _____________________________________________________________________________
 
 ;;; uncomment this line to disable loading of "default.el" at startup
 ;; (setq inhibit-default-init t)
@@ -160,6 +169,7 @@
 
 
 
+
 ;;;Colours
 (set-face-background 'default      "gray85")
 (set-face-foreground 'default      "black")
@@ -283,6 +293,18 @@
 (use-package docker-compose-mode :ensure t)
 
 (use-package dockerfile-mode :ensure t)
+
+(use-package rust-mode :ensure t)
+
+(use-package julia-mode :ensure t
+  :config
+  (setenv "PATH" (concat (getenv "PATH") ":/Applications/Julia-1.3.app/Contents/Resources/julia/bin"))
+  (setq exec-path (append exec-path '("/Applications/Julia-1.3.app/Contents/Resources/julia/bin")))
+  (add-hook 'julia-mode-hook 'julia-repl-mode))
+
+(use-package julia-repl :ensure t
+  :config
+  (add-hook 'julia-mode-hook 'julia-repl-mode))
 
 (use-package web-mode
   :ensure t
